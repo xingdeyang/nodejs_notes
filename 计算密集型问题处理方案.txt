@@ -2,18 +2,94 @@
 服务性能的上限，若解决掉多核CPU的利用问题,带来的性能上的提升是可观的。
 
 多进程架构-进程间通信：
-//master.js
-var fork = require('child_process').fork,
-	cpus = require('os').cpus(),
-	childProcess = fork('./worker.js');
-childProcess.on('message',function(m){
-	console.log('parent process receive message form child process : ' + m);
-});	
-childProcess.send({from:'parent'});
+/*
+	@ master.js
+*/
+	var fork = require('child_process').fork,
+		cpus = require('os').cpus(),
+		childProcess = fork('./worker.js');
+	childProcess.on('message',function(m){
+		if(m.pid){
+			console.log('parent process receive data form child process : ' + m.pid);
+			childProcess.send({status:'successful'});
+		}
+		if(m.act == 'suicide'){
+			//重启一个进程
+		}
+		
+	});	
+	
+	//子进程退出触发
+	childProcess.on('exit',function(){
+		//子进程正常退出，第一个参数为退出码
+		//子进程是通过kill()方法杀死，表示杀死进程时的信号
+		console.log('this process exit : ' + childProcess.pid);
+		//重启一个进程
+	});
+	
+	//子进程无法复制，杀死，发消息触发
+	childProces.on('error',function(){
+		//...
+	});
+	
+	//给子进程发送SIGTERM信号，杀掉进程
+	childProcess.kill();
+	或者process.kill(child.pid,'SIGTERM');
 
 	
-//worker.js
-process.on('message',function(msg){
-	console.log('child process receive message form parent : ' + msg);
-});
-process.send({from:'child'});
+/*
+	@ worker.js
+*/
+	......
+	some complex calculation, then return data
+	......
+	process.on('message',function(msg){
+		if(msg.status = 'successful'){
+			process.exit();
+		}
+	});
+
+	//关于异常捕获
+	process.on('uncaughtException',function(err){
+		process.send({act:suicide});
+		//log4j包
+		logger.error(err);
+		process.exit();
+	})
+
+	process.send({pid:process.pid});
+
+
+//句柄传递略
+
+//限量重启问题（避免无意义的频繁重启）
+	var limit = 10,
+		during = 60000,
+		restart = [],
+		workers = {};
+	function isTooFrequently(){
+		var time = new Date();
+		restart.push(time);
+		var len = restart.length;
+		//放弃重启机制
+		...
+	}
+
+	function createWorker(){
+		if(isTooFrequently()){
+			process.emit('giveup',length,during);
+			return;
+		}
+		var worker = fork('./worker.js');
+		workers[worker.pid] = worker;
+		worker.on('exit',function(){
+			delete workers[worker.pid];
+		});
+		worker.on('message',function(m){
+			if(m.act == 'suicide'){
+				//重启
+				createWorker();
+			}
+		});
+		console.log('create a new worker : ' + worker.pid);
+	}
