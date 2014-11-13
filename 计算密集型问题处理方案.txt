@@ -1,0 +1,19 @@
+由于所有都在单线程上处理，基于事件驱动的异步I/O,则影响nodejs服务性能的主要点在于CPU计算能力，它的上限决定了
+服务性能的上限，若解决掉多核CPU的利用问题,带来的性能上的提升是可观的。
+
+多进程架构-进程间通信：
+//master.js
+var fork = require('child_process').fork,
+	cpus = require('os').cpus(),
+	childProcess = fork('./worker.js');
+childProcess.on('message',function(m){
+	console.log('parent process receive message form child process : ' + m);
+});	
+childProcess.send({from:'parent'});
+
+	
+//worker.js
+process.on('message',function(msg){
+	console.log('child process receive message form parent : ' + msg);
+});
+process.send({from:'child'});
