@@ -53,6 +53,82 @@ e.g:
 	
 	e.g.参考github中connect_pool.js
 	
+	//多异步间的协作方案（即sub与pub间是一对多的关系）
+	e.g.利用上述偏函数after
+	function after(times,cb){
+		var count =0, result = {};
+		return function(key,value){
+			result[key] = value;
+			count++;
+			if(count == times){
+				return cb.call(this,result);
+			}
+		};
+	}
+	proxy.on('done',after());
+	proxy.emit('done',data1);
+	proxy.emit('done',data2);
+	proxy.emit('done',data2);
+	
+/*
+	@ promise/deferred模式
+	promise存在三种状态：未完成，完成，失败
+*/
+	e.g.
+	function Promise(){
+		EventEmitter.call(this);
+	}
+	Promise.prototype.then = function(successHandler,errorHandler,progressHandler){
+		if(typeof successHandler == 'function'){
+			this.once('success',successHandler);
+		}
+		if(typeof errorHandler == 'function'){
+			this.once('error',errorHandler);
+		}
+		if(typeof progressHandler == 'function'){
+			this.once('progress',progressHandler);
+		}
+		return this;
+	};
+	
+	function Deferred(){
+		this.state = 'unFulfilled';
+		this.promise = new Promise();
+	}
+	
+	Deferred.prototype.resolve = function(data){
+		this.state = 'success';
+		this.promise.emit('success',data);
+	};
+	
+	Deferred.prototype.reject = function(err){
+		this.state = 'error';
+		this.promise.emit('error',err);
+	};
+	
+	Deferred.prototype.progress = function(){
+		this.promise.emit('progress');
+	};
+	
+	//针对上述模式，进行具体业务场景封装
+	var promiseHttpServer = function(){
+		var deferred = new Deferred(),
+			chunks = [],size = 0;
+		res.on('data',function(chunk){
+			size += chunk.length;
+			chunks.push(chunk);
+			deferred.progress();
+		});
+		res.on('end',function(){
+			deferred.resolve(Buffer.concat(chunks,size).toString());
+		});
+		res.on('error',function(err){
+			deferred.reject(err);
+		});
+		return deferred.promise;
+	}
+	promiseHttpServer(res).then(function(){}.....);
+	
 
 
 
