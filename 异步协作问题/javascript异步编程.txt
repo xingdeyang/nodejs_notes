@@ -25,7 +25,7 @@ e.g:
 
 异步编程解决方案：
 1.sub/pub(事件发布/订阅模式)
-2.promise/deferred模式（promise用于事件注册作用于外部，deferred用于择机触发事件和状态变化作用于内部）
+2.promise/deferred模式（promise用于事件注册添加自定义逻辑作用于外部，可变；deferred用于择机触发事件和状态变化作用于内部，不可变）
 3.流程控制库
 
 /*
@@ -128,6 +128,28 @@ e.g:
 		return deferred.promise;
 	}
 	promiseHttpServer(res).then(function(){}.....);
+	
+	//Q包对Promise/A规范的实现,针对常见异步I/O进行封装
+	Deferred.prototype.makeNodeResolver = function(){
+		var self = this;
+		return function(error,value){
+			if(error){
+				self.reject(error);
+			}
+			else if(arguments.length > 2){
+				self.resolve(array_slice(arguments,1));
+			}
+			else{
+				self.resolve(value);
+			}
+		};
+	};
+	var readFile = function(){
+		var defer = Q.defer();
+		fs.readFile(file,encoding,defer.makeNodeResolver());
+		return defer.promise;
+	};
+	readFile(filename).then(function(){}...);
 	
 
 
