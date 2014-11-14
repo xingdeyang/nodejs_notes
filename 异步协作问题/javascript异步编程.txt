@@ -231,6 +231,33 @@ e.g:
 /*
 	@ 流程控制库
 */
+	//关于中间件
+	app.use = function(path,func){
+		var handle = {
+			path: pathRegexp(path),
+			stack: Array.prototype.slice.call(arguments,1);
+		};
+		routes.all.push(handle);
+	};
+	
+	var match = function(pathname,routes){
+		for(var i=0; i<routes.all.length; i++){
+			var route = routes.all[i];
+			if(route.path.regexp.exec(pathname)){
+				handle(req,res,route.stack);
+			}
+		}
+	};
+	
+	var handle = function(req,res,stack){
+		var next = function(){
+			var middleware = stack.shift();
+			if(middleware){
+				middleware(req,res,next);
+			}
+		};
+		next();
+	};
 	
 	
 	
