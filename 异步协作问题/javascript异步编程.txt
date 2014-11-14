@@ -151,6 +151,94 @@ e.g:
 	};
 	readFile(filename).then(function(){}...);
 	
+	//promise中的多异步协作(并行)
+	Deferred.prototype.all = function(promiseArr){
+		var count = promiseArr.length,
+			self = this, result = {};
+		promiseArr.forEach(function(promise,i){
+			promise.then(function(key,value){
+				result[key] = value;
+				count--;
+				if(count == 0){
+					self.resolve(result);
+				}
+			},function(err){
+				self.reject(err);
+			});
+		});
+		return self.promise;
+	};
+	deferred.all([promise1,promise2]).then(function(){}....);
+	
+	//promise中的多异步协作(串行)
+	var Promise = function(){
+		this.queue = [];
+		this.isPromise = true;
+	};
+	Promise.prototype.then = function(fulfilledHandler,errorHandler,progressHandler){
+		var handler = {};
+		if(typeof fulfilledHandler == 'function'){
+			handler.fulfilled = fulfilledHandler;
+		}
+		if(typeof errorHandler == 'function'){
+			handler.error = errorHandler;
+		}
+		this.queue.push(handler);
+		return this;
+	};
+	
+	var Deferred = function(){
+		this.promise = new Promise();
+	};
+	Deferred.prototype.resolve = function(obj){
+		var handler, promise = this.promise;
+		while(handler = promise.queue.shift()){
+			if(handler && handler.fulfilled){
+				var ret = handler.fulfilled(obj);
+				if(ret && ret.isPromise){
+					ret.queue = promise.queue;
+					this.promise = ret;
+					return;
+				}
+			}
+		}
+	};
+	Deferred.prototype.reject = function(err){
+		var promise = this.promise, handler;
+		while(handler = promise.queue.shift()){
+			if(handler && handler.errorHandler){
+				var ret = handler.errorHandler(err);
+				if(ret && ret.isPromise){
+					ret.queue = promise.queue;
+					this.promise = ret;
+					return;
+				}
+			}
+		}
+	};
+	Deferred.prototype.callback = function(){
+		var self = this;
+		return function(err,value){
+			if(err){
+				return self.reject(err);
+			}
+			else(
+				return self.resolve(value);
+			)
+		}
+	};
+	
+/*
+	@ 流程控制库
+*/
+	
+	
+	
+	
+	
+	
+	
+	
 
 
 
