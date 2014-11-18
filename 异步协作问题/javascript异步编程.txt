@@ -1,10 +1,10 @@
-nodejs±»Ú®»ÙµÄ²¿·ÖÔ­Òò£º
-1.µ¥Ïß³Ì´øÀ´µÄÓ²¼ş×ÊÔ´ÀûÓÃ²»×ãÓëÒì³£µ¼ÖÂÕû¸öÓ¦ÓÃÍË³ö¶ø´øÀ´¶ÔÓÚÎÈ¶¨ĞÔºÍ½¡×³ĞÔµÄÖÊÒÉ
-	±¸×¢£ºHTML5¹æ·¶Ìá³«µÄweb worker¿ÉÒÔ°ïÖúÎÒÃÇºÜºÃ´¦Àí¸ÃÎÊÌâ£¬nodejs½è¼øÆäÌá¹©ÁËchild_processÄ£¿éÒÔ±ãÓÚ½ø³Ì¸´ÖÆÒÔ¼°½ø³Ì¼äÍ¨ĞÅ»úÖÆ
-2.Òì²½I/O²»·ûºÏ´«Í³ÏßĞÔË¼Î¬ÒÔ¼°º¯ÊıÇ¶Ì×´øÀ´µÄØ¬ÃÎ
-3.Òì³£µÄ²¶»ñÎÊÌâ£¨try{}catch(){}»úÖÆÎŞĞ§£©
+nodejsè¢«è¯‹æ¯çš„éƒ¨åˆ†åŸå› ï¼š
+1.å•çº¿ç¨‹å¸¦æ¥çš„ç¡¬ä»¶èµ„æºåˆ©ç”¨ä¸è¶³ä¸å¼‚å¸¸å¯¼è‡´æ•´ä¸ªåº”ç”¨é€€å‡ºè€Œå¸¦æ¥å¯¹äºç¨³å®šæ€§å’Œå¥å£®æ€§çš„è´¨ç–‘
+	å¤‡æ³¨ï¼šHTML5è§„èŒƒæå€¡çš„web workerå¯ä»¥å¸®åŠ©æˆ‘ä»¬å¾ˆå¥½å¤„ç†è¯¥é—®é¢˜ï¼Œnodejså€Ÿé‰´å…¶æä¾›äº†child_processæ¨¡å—ä»¥ä¾¿äºè¿›ç¨‹å¤åˆ¶ä»¥åŠè¿›ç¨‹é—´é€šä¿¡æœºåˆ¶
+2.å¼‚æ­¥I/Oä¸ç¬¦åˆä¼ ç»Ÿçº¿æ€§æ€ç»´ä»¥åŠå‡½æ•°åµŒå¥—å¸¦æ¥çš„å™©æ¢¦
+3.å¼‚å¸¸çš„æ•è·é—®é¢˜ï¼ˆtry{}catch(){}æœºåˆ¶æ— æ•ˆï¼‰
 
-Æ«º¯Êı£º£¨jqueryÖĞµÄÓ¦ÓÃ£©
+åå‡½æ•°ï¼šï¼ˆjqueryä¸­çš„åº”ç”¨ï¼‰
 e.g:
 	var isType = function(type){
 		return function(data){
@@ -23,20 +23,20 @@ e.g:
 		}
 	};
 
-Òì²½±à³Ì½â¾ö·½°¸£º
-1.sub/pub(ÊÂ¼ş·¢²¼/¶©ÔÄÄ£Ê½)
-2.promise/deferredÄ£Ê½£¨promiseÓÃÓÚÊÂ¼ş×¢²áÌí¼Ó×Ô¶¨ÒåÂß¼­×÷ÓÃÓÚÍâ²¿£¬¿É±ä£»deferredÓÃÓÚÔñ»ú´¥·¢ÊÂ¼şºÍ×´Ì¬±ä»¯×÷ÓÃÓÚÄÚ²¿£¬²»¿É±ä£©
-3.Á÷³Ì¿ØÖÆ¿â
+å¼‚æ­¥ç¼–ç¨‹è§£å†³æ–¹æ¡ˆï¼š
+1.sub/pub(äº‹ä»¶å‘å¸ƒ/è®¢é˜…æ¨¡å¼)
+2.promise/deferredæ¨¡å¼ï¼ˆpromiseç”¨äºäº‹ä»¶æ³¨å†Œæ·»åŠ è‡ªå®šä¹‰é€»è¾‘ä½œç”¨äºå¤–éƒ¨ï¼Œå¯å˜ï¼›deferredç”¨äºæ‹©æœºè§¦å‘äº‹ä»¶å’ŒçŠ¶æ€å˜åŒ–ä½œç”¨äºå†…éƒ¨ï¼Œä¸å¯å˜ï¼‰
+3.æµç¨‹æ§åˆ¶åº“
 
 /*
-	@ sub/pubÄ£Ê½(nodejsÔ­ÉúÌá¹©Ä£¿é)
+	@ sub/pubæ¨¡å¼(nodejsåŸç”Ÿæä¾›æ¨¡å—)
 */
 	var events = require('events').EventEmitter,
 		eventIns = new events();
 	eventIns.on('eventName',cb);
 	eventIns.emit('eventName',data);
 	
-	e.g.ÒµÎñ³¡¾°£ºÑ©±ÀÎÊÌâ
+	e.g.ä¸šåŠ¡åœºæ™¯ï¼šé›ªå´©é—®é¢˜
 	
 	var proxy = new events.EventEmitter(),
 		status = 'ready';
@@ -51,10 +51,10 @@ e.g:
 		}
 	};
 	
-	e.g.²Î¿¼githubÖĞconnect_pool.js
+	e.g.å‚è€ƒgithubä¸­connect_pool.js
 	
-	//¶àÒì²½¼äµÄĞ­×÷·½°¸£¨¼´subÓëpub¼äÊÇÒ»¶Ô¶àµÄ¹ØÏµ£©
-	e.g.ÀûÓÃÉÏÊöÆ«º¯Êıafter
+	//å¤šå¼‚æ­¥é—´çš„åä½œæ–¹æ¡ˆï¼ˆå³subä¸pubé—´æ˜¯ä¸€å¯¹å¤šçš„å…³ç³»ï¼‰
+	e.g.åˆ©ç”¨ä¸Šè¿°åå‡½æ•°after
 	function after(times,cb){
 		var count =0, result = {};
 		return function(key,value){
@@ -71,8 +71,8 @@ e.g:
 	proxy.emit('done',data2);
 	
 /*
-	@ promise/deferredÄ£Ê½
-	promise´æÔÚÈıÖÖ×´Ì¬£ºÎ´Íê³É£¬Íê³É£¬Ê§°Ü
+	@ promise/deferredæ¨¡å¼
+	promiseå­˜åœ¨ä¸‰ç§çŠ¶æ€ï¼šæœªå®Œæˆï¼Œå®Œæˆï¼Œå¤±è´¥
 */
 	e.g.
 	function Promise(){
@@ -110,7 +110,7 @@ e.g:
 		this.promise.emit('progress');
 	};
 	
-	//Õë¶ÔÉÏÊöÄ£Ê½£¬½øĞĞ¾ßÌåÒµÎñ³¡¾°·â×°
+	//é’ˆå¯¹ä¸Šè¿°æ¨¡å¼ï¼Œè¿›è¡Œå…·ä½“ä¸šåŠ¡åœºæ™¯å°è£…
 	var promiseHttpServer = function(){
 		var deferred = new Deferred(),
 			chunks = [],size = 0;
@@ -129,7 +129,7 @@ e.g:
 	}
 	promiseHttpServer(res).then(function(){}.....);
 	
-	//Q°ü¶ÔPromise/A¹æ·¶µÄÊµÏÖ,Õë¶Ô³£¼ûÒì²½I/O½øĞĞ·â×°
+	//QåŒ…å¯¹Promise/Aè§„èŒƒçš„å®ç°,é’ˆå¯¹å¸¸è§å¼‚æ­¥I/Oè¿›è¡Œå°è£…
 	Deferred.prototype.makeNodeResolver = function(){
 		var self = this;
 		return function(error,value){
@@ -151,7 +151,7 @@ e.g:
 	};
 	readFile(filename).then(function(){}...);
 	
-	//promiseÖĞµÄ¶àÒì²½Ğ­×÷(²¢ĞĞ)
+	//promiseä¸­çš„å¤šå¼‚æ­¥åä½œ(å¹¶è¡Œ)
 	Deferred.prototype.all = function(promiseArr){
 		var count = promiseArr.length,
 			self = this, result = {};
@@ -170,7 +170,7 @@ e.g:
 	};
 	deferred.all([promise1,promise2]).then(function(){}....);
 	
-	//promiseÖĞµÄ¶àÒì²½Ğ­×÷(´®ĞĞ)
+	//promiseä¸­çš„å¤šå¼‚æ­¥åä½œ(ä¸²è¡Œ)
 	var Promise = function(){
 		this.queue = [];
 		this.isPromise = true;
@@ -229,9 +229,9 @@ e.g:
 	};
 	
 /*
-	@ Á÷³Ì¿ØÖÆ¿â
+	@ æµç¨‹æ§åˆ¶åº“
 */
-	//¹ØÓÚÖĞ¼ä¼ş
+	//å…³äºä¸­é—´ä»¶ï¼ˆå¤§è‡´æµç¨‹ï¼‰
 	app.use = function(path,func){
 		var handle = {
 			path: pathRegexp(path),
@@ -258,6 +258,8 @@ e.g:
 		};
 		next();
 	};
+	
+	//æµè¡Œçš„æµç¨‹æ§åˆ¶æ¨¡å—ï¼šasync,stepå…¶ä½¿ç”¨æ–¹å¼å¤§åŒå°å¼‚
 	
 	
 	
