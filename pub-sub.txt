@@ -6,3 +6,87 @@ Section1:
 	2.这种模式很灵活让代码逻辑间实现联系并解耦，浏览器端js实现的click等事件监听本质其实一样，只是触发对象是硬件而已，
 	 浏览器是通过event loop的方式不停判断是否有触发动作，从而找到内存中对应的已注册回调方法并执行，所以我们在删除
 	 Dom节点时要特别注意删除对应的事件监听以避免不必要的内存占用。
+	 
+
+Seciton2:
+
+	利用事件队列解决雪崩问题：
+	事件订阅/发布模式中有一个once方法，通过它添加的侦听器只能执行一次，执行后就会将它与事件的关联移除。这个特性可以
+	帮助我们过滤一些重复性的事件响应
+	
+	For example:
+	
+	var select = function(callback){
+		db.select('sql',function(data){
+			callback(data);
+		});
+	};
+	
+	//如果在大量并发且内存缓存组件如redis暂时不可用情况下，同一个sql语句会被发送到数据库中反复查询，从而影响服务性能
+	
+	solution1:
+	
+		var status = 'ready';
+		var select = function(callback){
+			if(status == 'ready'){
+				status = 'pending';
+				db.select('sql',function(data){
+					status = 'ready';
+					callback(data);
+				});
+			}
+		};
+		
+		//带来的问题很明显只有第一次调用有效，后续调用时没有数据服务
+		
+		
+	solution2:
+	
+		var event = new events.EventEmitter(),
+			 status = 'ready';
+		var select = function(callback){
+			event.once('selected',callback);
+			//将所有请求的回调都压入事件队列中
+			if(status == 'ready'){
+				status = 'pending';
+				db.select('sql',function(data){
+					status = 'ready';
+					event.emit('selected',data);
+				});
+			}
+		};
+		
+		
+Section3:
+
+	多异步间的协作方案（并行）
+	
+	var after = function(times,cb){
+		var count = 0,
+			 result = [];
+		return function(data){
+			result.push(data);
+			count++;
+			if(count == times){
+				cb(result);
+			}
+		};
+	};
+	
+	function render(){//...}
+	
+	var done = after(2,render);
+	
+	event.on('done',done);
+	
+	fs.readFile(path,'utf8',function(err,template){
+		event.emit('done',template);
+	});
+	
+	db.query(sql,function(data){
+		event.emit('done',data);
+	});
+	
+	
+	
+	
