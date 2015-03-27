@@ -1,0 +1,216 @@
+
+Section1:
+
+	Promise/Deferred模式包含两个部分即Promise和Deferred,Promise对单个异步操作提出了这样的抽象定义：
+	1.Promise操作只会处于三个状态中的一种：未完成，完成和失败状态；
+	2.Promise的状态只会出现从未完成状态到完成状态或者失败状态，不能逆反，完成状态和失败状态不能互换；
+	3.Promise的状态一旦转换，将不能被更改；
+
+	在API定义上，Promise/A规范的提议比较简单，一个Promise对象只要具备then方法即可。但是对于then方法
+	具有下列要求：
+	1.接受完成状态，失败状态的回调方法。在操作出现完成或者失败的时候，将会调用对应方法；
+	2.可选地支持progress事件回调作为第三个方法；
+	3.then方法只接受function对象，不接受其他对象；
+	4.then方法继续返回Promise对象，以实现链式调用；
+
+
+	For Example: 
+
+		-------------------------------------------------------------------------------------------------------
+
+		function Promise(){
+			EventEmitter.call(this);
+		}
+
+		util.inherit(Promise,EventEmitter);
+
+		Promise.prototype.then = function(successHandler,failHandler,progressHandler){
+			if(typeof successHandler == 'function'){
+				this.once('success',successHandler);
+			}
+			if(typeof failHandler == 'function'){
+				this.once('fail',failHandler);
+			}
+			if(typeof progressHandler == 'function'){
+				this.once('progress',progressHandler);
+			}
+			return this;
+			//注意此时返回this实现的链式调用并没有改变promise对象，继续使用then方法会不断给事件
+			监听器添加多个相应回调
+		};
+		
+		//then方法是将回调函数存起来，那么还需要触发执行这些回调函数的地方即Deferred对象
+		var Deferred = function(){
+			this.state = 'unfinished';
+			this.promise = new Promise();
+		};
+		
+		Deferred.prototype.resolve = function(data){
+			this.state = 'success';
+			this.promise.emit('success',data);
+		};
+		Deferred.prototype.reject = function(err){
+			this.promise.emit('fail',err);
+		};
+		Deferred.prototype.progress = function(data){
+			this.promise.emit('progress',data);
+		};
+		
+		//实际应用案例--封装HttpClient
+		
+		function createHttpClient(){
+		
+			var deferredIns = new Deferred(),
+				chunks = [],
+				size = 0,
+				postData = querystring.stringify({
+					msg: 'hello world'
+				});
+			
+			var options = {
+				hostname: 'www.google.com',
+				port: 80,
+				path: '/upload',
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'Content-length': postData.length
+				}
+			};
+			
+			var req = http.request(options,function(res){
+				res.on('data',function(chunk){
+					chunks.push(chunk);
+					size += chunk.length;
+				});
+				res.on('end',function(){
+					deferredIns.resolve(Buffer.concat(chunks,size).toString());
+				});
+				res.on('error',function(err){
+					deferredIns.reject(err);
+				});
+			});
+			
+			req.on('error',function(err){
+				console.log(err.message);
+			});
+			
+			req.write(postData);
+			
+			req.end();
+			
+			return deferredIns.promise;
+			
+		}
+		
+		createHttpClient(someParameters).then(function(data){
+			//...
+		},function(err){
+			//...
+		});
+		
+		由上代码可以看出Deferred主要用于控制内部并维护状态（不变部分的封装），Promise作用于外部
+		通过then方法暴露给外部以添加自定义逻辑
+		
+		-------------------------------------------------------------------------------------------------------
+	
+	
+Section2:
+
+	关于Promise/Deferred的多异步协作（异步的串行、并行）：
+	
+	For Example:
+	
+	-----------------------------------------------------------------------------------------------------------
+	
+	var Promise = function(){
+		this.queue = [];
+		this.isPromise = true;
+	};
+	
+	Promise.prototype.then = function(successHandler,failHandler,progressHandler){
+		var handler = {};
+		if(typeof successHandler == 'function'){
+			handler.successHandler = successHandler;
+		}
+		if(typeof failHandler == 'function'){
+			handler.failHandler = failHandler;
+		}
+		this.queue.push(handler);
+		return this;
+	};
+	
+	var Deferred = function(){
+		this.promise = new Promise();
+	};
+	
+	Deferred.prototype.resolve = function(data){
+		var handler,
+			 promise = this.promise;
+		while(handler = promise.queue.shift()){
+			if(handler && handler.successHandler){
+				var ret = handler.successHandler(data);
+				if(ret && ret.isPromise){
+					ret.queue = promise.queue;
+					//this.promise = ret;
+					return;
+				}
+			}
+		}
+	};
+	
+	Deferred.prototype.reject = function(err){
+		var handler,
+			 promise = this.promise;
+		while(handler = promise.queue.shift()){
+			if(handler && handler.failHandler){
+				var ret = handler.failHandler(err);
+				if(ret && ret.isPromise){
+					ret.queue = promise.queue;
+					this.promise = ret;
+					return;
+				}
+			}
+		}
+	};
+	
+	Deferred.prototype.all = function(promiseArr){
+		var i = 0,
+			 result = [],
+			 me = this,
+			 count = promiseArr.length;
+		promiseArr.forEach(function(promise,i){
+			promise.then(function(data){
+				result.push(data);
+				count--;
+				if(count == 0){
+					me.resolve(result);
+				}
+			},function(err){
+				me.reject(err);
+			});
+		});
+		return this.promise;
+	};
+	
+	Deferred.prototype.callback = function(){
+		var me = this;
+		return function(err,data){
+			if(err) return me.reject(err);
+			me.resolve(data);
+		};
+	};
+	
+	-----------------------------------------------------------------------------------------------------------
+	
+	
+Section3:
+
+	Promise/Deferred模式比原始的EventEmitter事件监听的和触发略为优美，但问题在于需要为不同的场景封装不同的API,没有原生
+	事件那么灵活。在实际应用需要将两者结合使用以达到最为清晰的代码结构,因为不管Promise/Deferred模式还是EventEmitter事件
+	侦听模式最终的目的都是为了让异步代码结构更加清晰。
+
+	
+
+
+
