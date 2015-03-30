@@ -1,0 +1,69 @@
+//master.js
+	
+	---------------------------------------------------------
+	
+	var tcpServer = require('net').createServer(),
+		 fork = require('child_process').fork(),
+		 os = require('os'),
+		 cpus = os.cpus(),
+		 workers = {};
+		 
+	tcpServer.listen(3000);
+	
+	function createWorker(){
+		var worker = fork(__dirname + '/worker.js');
+		worker.send('server',tcpServer);
+		workers[worker.pid] = worker;
+		console.log('create new worker : ' + worker.pid);
+		
+		worker.on('message',function(msg){
+			if(msg.act == 'suicide'){
+				createWorker();
+			}
+		});
+		
+		worker.on('exit',function(){
+			console.log('worker exit : ' + worker.pid);
+			delete workers[worker.pid];
+		});
+	}
+	
+	for(var i=0,len=cpus.length; i<len; i++){
+		createWorker();
+	}
+	
+	process.on('exit',function(){
+		Object.keys(workers).forEach(function(val,index){
+			workers[val].kill();
+		});
+	});
+	
+	---------------------------------------------------------
+	
+	
+	
+//worker.js
+
+	------------------------------------------------------------
+	
+	var httpServer = require('http').createServer(function(req,res){
+		//......
+	});
+	
+	process.on('message',function(msg,tcpServer){
+		if(msg == 'server'){
+			tcpServer.on('connection',function(socket){
+				httpServer.emit('connection',socket);
+			})
+		}
+	});
+	
+	process.on('uncaughtException',function(err){
+		process.send({act:'suicide'});
+		process.exit(1);
+	});
+	
+	
+	
+	
+	
